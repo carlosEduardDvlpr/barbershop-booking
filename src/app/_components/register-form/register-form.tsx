@@ -1,5 +1,5 @@
 export const RegisterForm = () => {
-  <form>
+  return <form>
     <label htmlFor="name">Nome</label>
     <input type="text" id="name" />
     <label htmlFor="tel">Tel</label>
