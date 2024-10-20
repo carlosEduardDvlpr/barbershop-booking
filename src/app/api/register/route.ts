@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
+import { db } from '@/app/_lib/prisma';
 
 interface RegisterProps {
   name: string;
@@ -38,5 +39,15 @@ export async function POST(req: Request) {
   }
 
   const hash = bcrypt.hashSync(pass1, 12);
-  
+
+  const user = await db.user.create({
+    data: {
+      email,
+      name,
+      password: hash,
+      tel,
+    },
+  });
+
+  return NextResponse.json({ user }, { status: 200 });
 }
