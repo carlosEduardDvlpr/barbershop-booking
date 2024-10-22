@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import { db } from '@/app/_lib/prisma';
+import { User } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 interface RegisterProps {
   name: string;
@@ -8,6 +10,11 @@ interface RegisterProps {
   email: string;
   pass1: string;
   pass2: string;
+}
+
+export interface RegisterResponse {
+  error?: string;
+  user?: User;
 }
 
 export async function POST(req: Request) {
@@ -40,14 +47,27 @@ export async function POST(req: Request) {
 
   const hash = bcrypt.hashSync(pass1, 12);
 
-  const user = await db.user.create({
-    data: {
-      email,
-      name,
-      password: hash,
-      tel,
-    },
-  });
+  try {
+    const user = await db.user.create({
+      data: {
+        email,
+        name,
+        password: hash,
+        tel,
+      },
+    });
 
-  return NextResponse.json({ user }, { status: 200 });
+    return NextResponse.json({ user }, { status: 200 });
+  } catch (error) {
+    if (error instanceof PrismaClientKnownRequestError) {
+      if (error.code === 'P2002') {
+        return NextResponse.json(
+          { error: 'user already exists' },
+          { status: 400 },
+        );
+      }
+    }
+  } finally {
+    await db.$disconnect();
+  }
 }

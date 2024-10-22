@@ -1,9 +1,15 @@
 'use client';
 
+import { RegisterResponse } from '@/app/api/register/route';
+import axios, { AxiosError } from 'axios';
+import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import React from 'react';
 
 export const RegisterForm = () => {
   const [formError, setFormError] = React.useState('');
+  const [formLoading, setFormLoading] = React.useState(false);
+  const [formSuccess, setFormSuccess] = React.useState(false);
 
   const nameInputRef = React.useRef<HTMLInputElement>(null);
   const telInputRef = React.useRef<HTMLInputElement>(null);
@@ -12,11 +18,12 @@ export const RegisterForm = () => {
   const pass2InputRef = React.useRef<HTMLInputElement>(null);
 
   const handleRegisterClick = React.useCallback(
-    (ev: React.FormEvent<HTMLFormElement>) => {
+    async (ev: React.FormEvent<HTMLFormElement>) => {
       ev.preventDefault();
       setFormError('');
+      setFormLoading(true);
 
-     const EMAIL_REGEXP = new RegExp(
+      const EMAIL_REGEXP = new RegExp(
         "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
       );
       const TEL_REGEXP = new RegExp('^[0-9]{2}[0-9]{9}$');
@@ -34,29 +41,63 @@ export const RegisterForm = () => {
         const pass1 = pass1InputRef.current.value;
         const pass2 = pass2InputRef.current.value;
 
+        let shouldReturnError = false;
+
         if (!name || name.length < 3) {
           setFormError('Insira seu nome! (minimo 3 letras)');
-          return;
+          shouldReturnError = true;
         }
 
         if (!TEL_REGEXP.test(tel)) {
           setFormError('Digite um número de telefone válido!');
-          return;
+          shouldReturnError = true;
         }
 
         if (!EMAIL_REGEXP.test(email)) {
           setFormError('Digite um email válido!');
-          return;
+          shouldReturnError = true;
         }
 
         if (pass1.length < 8) {
           setFormError('A senha precisa de pelo 8 caracteres!');
-          return;
+          shouldReturnError = true;
         }
 
         if (pass1 !== pass2) {
           setFormError('As senhas não são iguais!');
+          shouldReturnError = true;
+        }
+
+        if (shouldReturnError) {
+          setFormLoading(false);
+          setFormSuccess(false);
           return;
+        }
+
+        try {
+         await axios.post<RegisterResponse>('/api/register', {
+            email,
+            tel,
+            name,
+            pass1,
+            pass2,
+          });
+          setFormLoading(false);
+          setFormSuccess(true);
+        } catch (error) {
+          if (error instanceof AxiosError) {
+            const { error: errorMessage } = error.response
+              ?.data as RegisterResponse;
+            if (errorMessage === 'user already exists') {
+              setFormError(
+                'Já existe um usuário com mesmo email, tente ir para login!',
+              );
+            } else {
+              setFormError(errorMessage || error.message);
+            }
+          }
+          setFormLoading(false);
+          setFormSuccess(false);
         }
       }
     },
@@ -81,7 +122,21 @@ export const RegisterForm = () => {
           <p>{formError}</p>
         </div>
       )}
-      <button className="bg-blue-400 mt-2">Enviar</button>
+      {formSuccess && (
+        <div>
+          <p>Cadastro realizado com successo!</p>
+        </div>
+      )}
+      <button
+        className="bg-blue-400 mt-2 flex items-center justify-center gap-2"
+        disabled={formLoading}
+      >
+        {formLoading && <Loader2 size={16} className="mr-2 animate-spin" />}
+        Enviar
+      </button>
+      <div className="mt-5 underline">
+        <Link href="/login">Ir para login</Link>
+      </div>
     </form>
   );
 };
