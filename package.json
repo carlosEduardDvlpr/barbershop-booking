@@ -1,5 +1,5 @@
 {
-  "name": "barbershop-booking",
+  "name": "barbershop-booking-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,28 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@prisma/client": "^5.21.1",
-    "@types/bcrypt": "^5.0.2",
-    "axios": "^1.7.7",
-    "bcrypt": "^5.1.1",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.453.0",
-    "next": "14.2.15",
-    "prisma": "^5.21.1",
-    "react": "^18",
-    "react-dom": "^18",
-    "tailwind-merge": "^2.5.4",
-    "tailwindcss-animate": "^1.0.7"
+    "react": "19.0.0-rc-69d4b800-20241021",
+    "react-dom": "19.0.0-rc-69d4b800-20241021",
+    "next": "15.0.1"
   },
   "devDependencies": {
+    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.15",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "eslint": "^8",
+    "eslint-config-next": "15.0.1"
   }
 }
