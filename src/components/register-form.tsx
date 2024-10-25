@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { verifyEmail } from '@/utils/verifyEmail';
 import Link from 'next/link';
 import React from 'react';
 
@@ -29,10 +30,6 @@ export function RegisterForm() {
     const password = inputPassword.current?.value;
     const confirmedPassword = inputConfirmedPassword.current?.value;
 
-    const REGEXP_EMAIL = new RegExp(
-      "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
-    );
-
     if (!name || !email || !password || !confirmedPassword) {
       setError('Algum campo não foi preenchido.');
       return;
@@ -43,7 +40,7 @@ export function RegisterForm() {
       return;
     }
 
-    if (!REGEXP_EMAIL.test(email)) {
+    if (!verifyEmail(email)) {
       setError('O email informado não é válido.');
       return;
     }
@@ -58,7 +55,7 @@ export function RegisterForm() {
       return;
     }
 
-    
+
   };
 
   return (
