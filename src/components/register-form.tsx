@@ -1,4 +1,5 @@
 'use client';
+import { RegisterResponse } from '@/app/api/register/route';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,20 +11,26 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { verifyEmail } from '@/utils/verifyEmail';
+import axios, { AxiosError } from 'axios';
+import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
 export function RegisterForm() {
   const [error, setError] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [success, setSuccess] = React.useState(false);
 
   const inputName = React.useRef<HTMLInputElement>(null);
   const inputEmail = React.useRef<HTMLInputElement>(null);
   const inputPassword = React.useRef<HTMLInputElement>(null);
   const inputConfirmedPassword = React.useRef<HTMLInputElement>(null);
 
-  const handleSubmitForm = (ev: React.FormEvent) => {
+  const handleSubmitForm = async (ev: React.FormEvent) => {
     ev.preventDefault();
     setError('');
+    setLoading(true);
+    setSuccess(false);
 
     const name = inputName.current?.value;
     const email = inputEmail.current?.value;
@@ -35,27 +42,57 @@ export function RegisterForm() {
       return;
     }
 
+    let shouldReturnError = false;
+
     if (name.length < 3) {
       setError('O nome do usuário deve ter no mínimo 3 letras.');
-      return;
+      shouldReturnError = true;
     }
 
     if (!verifyEmail(email)) {
       setError('O email informado não é válido.');
-      return;
+      shouldReturnError = true;
     }
 
     if (password.length < 8) {
       setError('A senha deve ter no minimo 8 caracteres.');
-      return;
+      shouldReturnError = true;
     }
 
     if (password !== confirmedPassword) {
       setError('As senhas não conferem!');
+      shouldReturnError = true;
+    }
+
+    if (shouldReturnError) {
+      setLoading(false);
+      setSuccess(false);
       return;
     }
 
+    try {
+      const response = await axios.post<RegisterResponse>('/api/register', {
+        name,
+        email,
+        password,
+        confirmedPassword,
+      });
 
+      setLoading(false);
+      setSuccess(true);
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        const { error: errorMessage } = error.response
+          ?.data as RegisterResponse;
+        if (errorMessage === 'user already exists') {
+          setError('Esse email já esta registrado, vá para o login.');
+        } else {
+          setError(error.message);
+        }
+      }
+      setLoading(false);
+      setSuccess(false);
+    }
   };
 
   return (
@@ -108,13 +145,25 @@ export function RegisterForm() {
               required
             />
           </div>
+          {success && (
+            <div className="text-green-800">
+              <h1 className="font-bold">Registro realizado com successo!</h1>
+              <p>Você será redirecionado...</p>
+              <p className="text-sm">{error}</p>
+            </div>
+          )}
           {error && (
             <div className="text-red-600">
               <h1 className="font-bold">Erro no formulário</h1>
               <p className="text-sm">{error}</p>
             </div>
           )}
-          <Button type="submit" className="w-full">
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={loading || success}
+          >
+            {loading && <Loader2 size={16} className="animate-spin mr-2" />}
             Registrar-se
           </Button>
         </form>
