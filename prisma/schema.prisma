@@ -8,8 +8,8 @@ datasource db {
 }
 
 model User {
-  id   String @unique @default(cuid())
-  name String
-  email String @unique
+  id       String @id @default(cuid())
+  name     String
+  email    String @unique
   password String
 }
