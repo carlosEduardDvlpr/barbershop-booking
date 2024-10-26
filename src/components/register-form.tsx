@@ -14,9 +14,12 @@ import { verifyEmail } from '@/utils/verifyEmail';
 import axios, { AxiosError } from 'axios';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 
 export function RegisterForm() {
+  const router = useRouter();
+
   const [error, setError] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
@@ -80,6 +83,7 @@ export function RegisterForm() {
 
       setLoading(false);
       setSuccess(true);
+      setTimeout(() => router.replace('/'), 1000);
     } catch (error) {
       if (error instanceof AxiosError) {
         const { error: errorMessage } = error.response
